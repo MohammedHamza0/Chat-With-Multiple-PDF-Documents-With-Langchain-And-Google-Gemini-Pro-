@@ -1,4 +1,4 @@
-# Chat with Multiple PDF Documents
+ # Chat with Multiple PDF Documents
 
 A powerful application that allows you to chat with multiple PDF documents using LangChain and Google Gemini Pro. This tool extracts text from PDFs, processes it, and enables you to ask questions about the content, receiving AI-generated responses based on the document content.
 
@@ -38,7 +38,7 @@ A powerful application that allows you to chat with multiple PDF documents using
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/MohammedHamza0/chat-with-multiple-pdf-documents.git
+   git clone [https://github.com/MohammedHamza0/chat-with-multiple-pdf-documents.git](https://github.com/MohammedHamza0/Chat-With-Multiple-PDF-Documents-With-Langchain-And-Google-Gemini-Pro-.git)
    cd chat-with-multiple-pdf-documents
    ```
 

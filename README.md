@@ -38,7 +38,7 @@ A powerful application that allows you to chat with multiple PDF documents using
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/chat-with-multiple-pdf-documents.git
+   git clone https://github.com/MohammedHamza0/chat-with-multiple-pdf-documents.git
    cd chat-with-multiple-pdf-documents
    ```
 

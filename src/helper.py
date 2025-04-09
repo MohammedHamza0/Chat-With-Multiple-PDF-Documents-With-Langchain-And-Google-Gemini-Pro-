@@ -10,6 +10,9 @@ load_dotenv(override=True)
 import os
 import streamlit as st
 
+
+
+
 # gemini api key
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
@@ -34,7 +37,6 @@ def get_pdf_text(pdf_docs):
         
     for pdf in pdf_docs:
         if pdf is not None:
-            # Streamlit file uploader returns a file-like object
             doc_pdf = PdfReader(pdf)
             for page in doc_pdf.pages:
                 text += page.extract_text()
@@ -68,7 +70,6 @@ def get_vector_store(text_chunks):
         None
     """
     global embedding_model
-    # Use the API key for authentication
     embedding_model = GoogleGenerativeAIEmbeddings(
         model="models/embedding-001",
         google_api_key=GEMINI_API_KEY
@@ -84,27 +85,28 @@ def get_conversational_chain():
     Returns:
         Chain: A LangChain question-answering chain ready to process queries using the given context.
     """
-    prompt_template = """You are a knowledgeable and professional AI assistant specializing in providing accurate information from the given context. "
-                         "Your role is to:\n\n"
-                         "1. Provide clear, concise, and accurate answers based solely on the provided context\n"
+    prompt_template = """You are a knowledgeable and professional AI assistant specializing in providing accurate information from the given context.
+                         Your role is to:\n\n"
+                         "1. Provide clear, concise, and accurate answers based on the provided context and conversation history\n"
                          "2. If the context doesn't contain enough information to fully answer a question, acknowledge this limitation\n"
                          "3. Maintain a professional and helpful tone while ensuring factual accuracy\n"
                          "4. Use direct quotes from the context when relevant to support your answers\n"
                          "5. Organize complex responses in a structured, easy-to-read format\n"
-                         "6. If you need to make assumptions, explicitly state them\n\n"
+                         "6. Consider the previous conversation history to maintain context and provide coherent responses\n"
+                         "7. If you need to make assumptions, explicitly state them\n\n"
                          "Remember:\n"
                          "- Stay within the scope of the provided context\n"
+                         "- Use conversation history to better understand the context of questions\n"
                          "- Avoid making up information or speculating beyond the given content\n"
                          "- If multiple interpretations are possible, present them clearly\n"
                          "- Maintain consistency in your responses\n\n"
-                         "Format your responses in a clear, professional manner using appropriate markdown formatting when helpful.\n\n"
-                         "Context:\n{context}\n\n"
+                         "Previous conversation history:\n{history}\n\n"
+                         "Context from documents:\n{context}\n\n"
                          "Question: {input}\n\n"
                          "Answer: 
                          """
-    # Use the correct model name format for Gemini
     model = ChatGoogleGenerativeAI(model="gemini-2.0-flash", api_key=GEMINI_API_KEY)
-    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "input"])
+    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "input", "history"])
     chain = load_qa_chain(llm=model, chain_type="stuff", prompt=prompt)
     return chain
 
@@ -117,7 +119,7 @@ def user_query(question):
         question (str): The user's input question.
 
     Returns:
-        dict: The generated response from the language model based on relevant context.
+        str: The generated response from the language model based on relevant context.
     """
     global embedding_model
     if embedding_model is None:
@@ -137,16 +139,24 @@ def user_query(question):
 
     chain = get_conversational_chain()
 
+    # Format the conversation history
+    history = ""
+    if "history" in st.session_state:
+        for chat in st.session_state.history[-5:]:  # Get last 5 messages for context
+            role = "User" if chat["role"] == "user" else "Assistant"
+            history += f"{role}: {chat['message']}\n"
+
     # Format the input correctly with both 'input_documents' and 'input' keys
     chain_input = {
         "input_documents": docs,
-        "input": question
+        "input": question,
+        "history": history
     }
     
     response = chain(
         chain_input,
         return_only_outputs=True
     )
-    st.write(response["output_text"])
+    return response["output_text"]
 
        
